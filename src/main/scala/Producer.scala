@@ -4,17 +4,15 @@
 
 package com.ntp.anthonyc
 
-
-import java.util.Date
-
 import akka.actor._
 import scala.concurrent.ExecutionContext.Implicits.global
+import java.util.Date
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 case class Client(consumer: ActorRef, var lastKeepAlive: Long)
 
-class Producer() extends Actor {
+class Producer() extends Actor with ActorLogging {
   private var clients = new ArrayBuffer[Client]()
   private var isRunning = false
 
@@ -34,12 +32,12 @@ class Producer() extends Actor {
 
     case Start => start()
 
-    // These two messages are used by the scheduler
+    // These two internal messages are used by the scheduler
     case Update => updateConsumers()
     case Broadcast => broadcastTime()
   }
 
-  def start(): Unit = {
+  private def start(): Unit = {
     if (!isRunning) {
       makeFutureBroadcast()
       makeFutureUpdate()
@@ -47,12 +45,13 @@ class Producer() extends Actor {
     }
   }
 
+  private def updateConsumers(): Unit = {
 
-  def updateConsumers(): Unit = {
     def removeIdleConsumers(client: Client): Unit = {
       if (System.currentTimeMillis - client.lastKeepAlive > 10000) {
-        println("removed the worker at " + client.consumer)
         clients -= client
+
+        println("removed the worker at " + client.consumer)
         println("\t" + clients.length + " clients left")
       }
     }
@@ -64,14 +63,16 @@ class Producer() extends Actor {
 
     if (clients.length == 0 && isRunning) {
       println("All workers ended and the system is going to shutdown")
+      context.stop(self)
       context.system.shutdown()
       isRunning = false
     }
-
-    makeFutureUpdate()
+    else {
+      makeFutureUpdate()
+    }
   }
 
-  def broadcastTime(): Unit = {
+  private def broadcastTime(): Unit = {
     println("BROADCASTING TIME FROM PRODUCER")
     val currentTime = new Date()
     val time = Time(currentTime.toString)
@@ -82,16 +83,16 @@ class Producer() extends Actor {
     makeFutureBroadcast()
   }
 
-  def operateOnConsumer(consumer: ActorRef)(success: (Client) => Unit): Unit = {
+  private def operateOnConsumer(consumer: ActorRef)(success: (Client) => Unit): Unit = {
     val searchResult = clients find (_.consumer == consumer)
 
     searchResult match {
       case Some(client) => success(client)
-      case None =>
+      case None => // Ignores requests from consumers that are not registered
     }
   }
 
-  def makeFutureUpdate(): Unit = {
+  private def makeFutureUpdate(): Unit = {
     context.system.scheduler.scheduleOnce(
       Duration(100, "milliseconds"),
       self,
@@ -99,7 +100,7 @@ class Producer() extends Actor {
     )
   }
 
-  def makeFutureBroadcast(): Unit = {
+  private def makeFutureBroadcast(): Unit = {
     context.system.scheduler.scheduleOnce(
       Duration(1, "seconds"),
       self,

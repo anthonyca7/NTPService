@@ -2,9 +2,6 @@ package com.ntp.anthonyc
 
 import akka.actor._
 import akka.routing.{RoundRobinRoutingLogic, Router, ActorRefRoutee}
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 object NTPService {
