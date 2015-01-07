@@ -12,4 +12,7 @@ libraryDependencies +=
 libraryDependencies +=
   "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test"
 
+libraryDependencies +=
+  "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test"
+
     

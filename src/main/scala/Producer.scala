@@ -51,8 +51,8 @@ class Producer() extends Actor with ActorLogging {
       if (System.currentTimeMillis - client.lastKeepAlive > 10000) {
         clients -= client
 
-        println("removed the worker at " + client.consumer)
-        println("\t" + clients.length + " clients left")
+        log.info("removed the worker at " + client.consumer)
+        log.info(clients.length + " clients left")
       }
     }
 
@@ -62,7 +62,7 @@ class Producer() extends Actor with ActorLogging {
     }
 
     if (clients.length == 0 && isRunning) {
-      println("All workers ended and the system is going to shutdown")
+      log.info("All workers ended and the system is going to shutdown")
       context.stop(self)
       context.system.shutdown()
       isRunning = false
@@ -73,7 +73,7 @@ class Producer() extends Actor with ActorLogging {
   }
 
   private def broadcastTime(): Unit = {
-    println("BROADCASTING TIME FROM PRODUCER")
+    log.info("BROADCASTING TIME FROM PRODUCER")
     val currentTime = new Date()
     val time = Time(currentTime.toString)
 

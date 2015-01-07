@@ -4,17 +4,19 @@
 
 package com.ntp.anthonyc
 
+//import org.scalatest.
 import akka.actor._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class Consumer(private val producer: ActorRef, private var numOfKeepAliveLeft: Int) extends Actor {
+class Consumer(private val producer: ActorRef, private var numOfKeepAliveLeft: Int)
+  extends Actor with ActorLogging {
 
   private var isRunning = false
 
   def receive: Actor.Receive = {
     case Time(time) =>
-      println(time + " received in " +
+      log.info(time + " received in " +
       context.actorOf(Props(this)) +
       ", keep alive messages left = " + numOfKeepAliveLeft)
 
