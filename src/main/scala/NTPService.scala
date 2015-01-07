@@ -22,38 +22,11 @@ object NTPService {
 
     val producer = system.actorOf(Props(new Producer()))
 
-    var consumers = new ArrayBuffer[ActorRef]()
     for (i <- 0 until numOfConsumers) {
       val consumer = system.actorOf(Props(new Consumer(producer, random.nextInt(13))))
-      consumers += consumer
       consumer ! Start
     }
 
-    producer ! Update
-
-    system.scheduler.schedule(
-      Duration(0, "milliseconds"),
-      Duration(100, "milliseconds"),
-      producer,
-      Update
-    )
-
-    system.scheduler.schedule(
-      Duration(0, "seconds"),
-      Duration(5, "seconds"),
-      new Runnable {
-        override def run(): Unit = {
-          consumers foreach (_ ! Keep)
-        }
-      }
-    )
-    system.scheduler.schedule(
-        Duration(0, "seconds"),
-        Duration(1, "seconds"),
-        producer,
-        Broadcast
-    )
-
-
+    producer ! Start
   }
 }
